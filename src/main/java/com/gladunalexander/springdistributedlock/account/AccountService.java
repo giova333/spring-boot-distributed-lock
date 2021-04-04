@@ -1,7 +1,9 @@
 package com.gladunalexander.springdistributedlock.account;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -12,7 +14,8 @@ public class AccountService {
 
     private final AccountRepository repository;
 
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @SneakyThrows
     public void sendMoney(Long sourceAccountId,
                           Long targetAccountId,
                           BigDecimal amount) {
@@ -27,5 +30,7 @@ public class AccountService {
 
         sourceAccount.withdraw(amount);
         targetAccount.deposit(amount);
+
+        Thread.sleep(5000);
     }
 }
