@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Version;
 import java.math.BigDecimal;
 
 @Entity
@@ -24,6 +25,9 @@ public class Account {
     private String ownerName;
 
     private BigDecimal balance;
+
+    @Version
+    private Long version;
 
     public void withdraw(BigDecimal amount) {
         if (amount.compareTo(balance) > 0) {
