@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +32,10 @@ public class AccountService {
         targetAccount.deposit(amount);
 
         Thread.sleep(5000);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Account> getAccounts() {
+        return repository.findAll();
     }
 }

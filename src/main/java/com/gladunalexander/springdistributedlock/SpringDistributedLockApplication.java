@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @SpringBootApplication
 public class SpringDistributedLockApplication {
@@ -19,27 +20,15 @@ public class SpringDistributedLockApplication {
     @Bean
     SmartInitializingSingleton init(AccountRepository repository) {
         return () -> {
-            repository.save(
-                    Account.builder()
-                            .ownerName("Bob")
-                            .balance(BigDecimal.valueOf(100))
-                            .build()
-            );
+            var bobAccount = new Account("Bob");
+            var aliceAccount = new Account("Alice");
+            var johnAccount = new Account("John");
 
-            repository.save(
-                    Account.builder()
-                            .ownerName("Alice")
-                            .balance(BigDecimal.valueOf(100))
-                            .build()
-            );
+            bobAccount.deposit(BigDecimal.valueOf(100));
+            aliceAccount.deposit(BigDecimal.valueOf(100));
+            johnAccount.deposit(BigDecimal.valueOf(100));
 
-            repository.save(
-                    Account.builder()
-                            .ownerName("John")
-                            .balance(BigDecimal.valueOf(100))
-                            .build()
-            );
-
+            repository.saveAll(List.of(bobAccount, aliceAccount, johnAccount));
         };
     }
 
