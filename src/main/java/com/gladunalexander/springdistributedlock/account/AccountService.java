@@ -1,5 +1,7 @@
 package com.gladunalexander.springdistributedlock.account;
 
+import com.gladunalexander.springdistributedlock.lock.LockAcquisitionException;
+import com.gladunalexander.springdistributedlock.lock.LockManager;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -8,12 +10,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.gladunalexander.springdistributedlock.lock.LockAcquisitionException.Type.UNABLE_TO_ACQUIRE_LOCK;
+
 @Service
 @RequiredArgsConstructor
 public class AccountService {
 
     private final AccountRepository repository;
-    private final OperationRepository operationRepository;
+    private final LockManager lockManager;
 
     @Transactional
     @SneakyThrows
@@ -21,14 +25,16 @@ public class AccountService {
                           Long targetAccountId,
                           BigDecimal amount) {
 
-        lockOperationsOnAccount(sourceAccountId);
-
+        if (!lockManager.tryLock(String.valueOf(sourceAccountId))) {
+            throw new LockAcquisitionException(UNABLE_TO_ACQUIRE_LOCK, sourceAccountId);
+        }
         var sourceAccount = repository
                 .findById(sourceAccountId)
                 .orElseThrow();
 
-        lockOperationsOnAccount(targetAccountId);
-
+        if (!lockManager.tryLock(String.valueOf(targetAccountId))) {
+            throw new LockAcquisitionException(UNABLE_TO_ACQUIRE_LOCK, targetAccountId);
+        }
         var targetAccount = repository
                 .findById(targetAccountId)
                 .orElseThrow();
@@ -37,10 +43,9 @@ public class AccountService {
         targetAccount.deposit(amount);
 
         Thread.sleep(5000);
-    }
 
-    private void lockOperationsOnAccount(Long id) {
-        operationRepository.findByAccountId(id);
+        lockManager.unlock(String.valueOf(sourceAccountId));
+        lockManager.unlock(String.valueOf(targetAccountId));
     }
 
     @Transactional(readOnly = true)
