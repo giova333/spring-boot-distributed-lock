@@ -1,0 +1,1 @@
+## Spring Boot project that show different problems developers can face with concurrent modification of resources and how to solve them. Each commit corresponds to a different solution.
